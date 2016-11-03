@@ -25,6 +25,14 @@ public class Bubble : MonoBehaviour
 
     }
 
+    void OnTriggerEnter2D(Collider2D col)
+    {
+        if (col.tag == "Death Collider")
+        {
+            BubbleManager.instance.RemoveBubble(this);
+        }
+    }
+
     void OnCollisionEnter2D(Collision2D col)
     {
         // trigger animations of sprite
