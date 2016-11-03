@@ -10,21 +10,29 @@ public class Attacher : MonoBehaviour {
     public float moveSpeed = 10;
     public float maxDistance = 20;
     private float distanceTravelled = 0;
+    public float size = 0.15f;
 	
 	
 	// Update is called once per frame
 	void FixedUpdate ()
     {
-        transform.Translate(direction*moveSpeed * Time.fixedDeltaTime);
+        RaycastHit2D hit = Physics2D.CircleCast(transform.position, size, direction, direction.magnitude * moveSpeed * Time.fixedDeltaTime);
+        if (hit)
+        {
+            if (hit.collider.tag != "Player")
+            {
+                //Call attacher in parent here;
+                parentScript.DeleteAttacher();
+            }
+        }
+        transform.Translate(direction * moveSpeed * Time.fixedDeltaTime);
         distanceTravelled += direction.magnitude * moveSpeed * Time.fixedDeltaTime;
         if (distanceTravelled >= maxDistance)
             parentScript.DeleteAttacher();
     }
-    void OnCollisionEnter2D(Collision2D col)
+        
+    void OnDrawGizmos()
     {
-        if (col.gameObject.tag != "Player")
-        {
-            attached = true;
-        }
+        Gizmos.DrawSphere(transform.position, size);
     }
 }

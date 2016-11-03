@@ -49,7 +49,7 @@ public class PlayerMovement : MonoBehaviour {
         selfRB.AddForce(new Vector2(x, 0));
         aimingDirection = (useDebugInput ? GetMouseAim() : currControls.AIM).normalized;
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetButtonDown("Fire1"))
         {
             Fire();
         }
