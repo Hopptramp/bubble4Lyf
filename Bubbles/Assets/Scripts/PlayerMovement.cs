@@ -17,6 +17,10 @@ public class PlayerMovement : MonoBehaviour {
     public GameObject attacherPrefab;
     private GameObject attacherInstance;
     private Attacher attacherScript;
+
+    [SerializeField]
+    private Tether m_tether;
+
     [SerializeField]
     private Rigidbody2D selfRB;
     [SerializeField]
@@ -27,6 +31,12 @@ public class PlayerMovement : MonoBehaviour {
     private ControlState prevControls = new ControlState();
     public Vector2 aimingDirection { get; private set; }
 
+    private LineRenderer lr;
+    [SerializeField]
+    private AnimationCurve reelCurve;
+    public float reelSpeed;
+    private float reelCounter = 0;
+
     public void SetControlState(ControlState _new)
     {
         prevControls = currControls;
@@ -34,8 +44,9 @@ public class PlayerMovement : MonoBehaviour {
     }
 
 	// Use this for initialization
-	void Awake () {
-	
+	void Awake ()
+    {
+        lr = GetComponent<LineRenderer>();
 	}
 
     public void Reset() { selfRB.velocity = Vector3.zero; SetControlState(new ControlState()); }
@@ -51,10 +62,64 @@ public class PlayerMovement : MonoBehaviour {
 
         if (Input.GetButtonDown("Fire1"))
         {
-            Fire();
-        }
+            if (m_tether != null)
+            {
+                if (!m_tether.tetherActive)
+                    Fire();
+            }
+            else
+                Fire();
 
+        }
+        if (Input.GetButton("Fire1"))
+        {
+            m_tether.tetherLength-= reelCurve.Evaluate(reelCounter) * reelSpeed * Time.fixedDeltaTime;
+            reelCounter = Time.fixedDeltaTime;
+        }
+        if (Input.GetButtonUp("Fire1"))
+            reelCounter = 0;
+
+        if (Input.GetButtonDown("Fire2"))
+        {
+            Detach();
+        }
+        if (m_tether != null)
+        {
+            m_tether.RecalcForce(Time.fixedDeltaTime);
+        }
     }
+        
+    void LateUpdate()
+    {
+        if (m_tether != null)
+        {
+            if (m_tether.tO.attachedTo == null)
+                Detach();
+        }
+        if (m_tether != null && m_tether.tetherActive)
+        {
+            lr.enabled = true;
+            lr.SetPosition(0, transform.position);
+            lr.SetPosition(1, m_tether.tO.dummyObject.transform.position);
+        }
+        else
+            lr.enabled = false;
+
+        
+    }
+
+    public void Detach()
+    {
+        if (m_tether != null)
+            m_tether.Disconnect(); 
+    }
+    public void Attach(RaycastHit2D _hit)
+    {
+       
+        m_tether = new Tether();
+        m_tether.SetAttachment(_hit, selfRB, Vector2.Distance(_hit.point, transform.position));        
+    }
+
     void Fire()
     {
         DeleteAttacher();
@@ -76,6 +141,7 @@ public class PlayerMovement : MonoBehaviour {
         Vector2 temp = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         return new Vector2(temp.x - transform.position.x, temp.y - transform.position.y);
     }
+
 
     void OnDrawGizmos()
     {

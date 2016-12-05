@@ -22,6 +22,7 @@ public class Attacher : MonoBehaviour {
             if (hit.collider.tag != "Player")
             {
                 //Call attacher in parent here;
+                parentScript.Attach(hit);
                 parentScript.DeleteAttacher();
             }
         }
